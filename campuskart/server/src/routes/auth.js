@@ -1,0 +1,8 @@
+import {Router} from 'express';
+import bcrypt from 'bcryptjs';import jwt from 'jsonwebtoken';import User from '../models/User.js';import {auth} from '../middleware/auth.js';
+const r=Router();const token=user=>jwt.sign({id:user.id},process.env.JWT_SECRET,{expiresIn:'7d'});
+r.post('/register',async(req,res,next)=>{try{let {name,email,password,studentId,department,year,phone}=req.body;email=String(email||'').toLowerCase().trim();const domain=process.env.COLLEGE_EMAIL_DOMAIN?.trim().toLowerCase();if(!name||!email.includes('@')||!password||password.length<8)return res.status(400).json({error:'Name, valid email, and password of 8+ characters required'});if(domain&&!email.endsWith('@'+domain))return res.status(400).json({error:'Use your college email'});if(await User.exists({email}))return res.status(409).json({error:'Email already registered'});const user=await User.create({name,email,passwordHash:await bcrypt.hash(password,12),studentId,department,year,phone});res.status(201).json({token:token(user),user})}catch(err){next(err)}});
+r.post('/login',async(req,res,next)=>{try{const user=await User.findOne({email:String(req.body.email||'').toLowerCase()});if(!user||!await bcrypt.compare(String(req.body.password||''),user.passwordHash))return res.status(401).json({error:'Invalid credentials'});if(user.suspended)return res.status(403).json({error:'Account suspended'});res.json({token:token(user),user})}catch(err){next(err)}});
+r.get('/me',auth,(req,res)=>res.json(req.user));
+r.patch('/me',auth,async(req,res,next)=>{try{for(const k of ['name','department','year','studentId'])if(req.body[k]!==undefined)req.user[k]=req.body[k];await req.user.save();res.json(req.user)}catch(err){next(err)}});
+export default r;

@@ -1,0 +1,5 @@
+import mongoose from 'mongoose';
+export const categories=['Books','Electronics','Project Kits','Hostel Essentials','Stationery','Cycles','Instruments','Sports','Other'];
+const schema=new mongoose.Schema({seller:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},title:{type:String,required:true,maxlength:120,trim:true},description:{type:String,required:true,maxlength:2000},category:{type:String,enum:categories,required:true},price:{type:Number,required:true,min:0},originalPrice:{type:Number,min:0},purchaseYear:{type:Number,min:1990,max:2100},condition:{type:String,enum:['New','Like New','Good','Used'],required:true},images:[{type:String}],negotiable:{type:Boolean,default:false},exchange:{type:Boolean,default:false},meetup:{type:String,enum:['Library','Canteen','Main Gate','Department Block','Hostel','Other'],default:'Library'},status:{type:String,enum:['pending','active','reserved','sold','removed'],default:'pending'}},{timestamps:true});
+schema.index({title:'text',description:'text'});
+export default mongoose.model('Item',schema);
