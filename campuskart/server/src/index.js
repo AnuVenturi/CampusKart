@@ -46,6 +46,7 @@ const origins = (
 )
   .split(',')
   .map((origin) => origin.trim());
+  console.log('Allowed CORS origins:', origins);
 
 // Socket.IO
 const io = new Server(server, {
